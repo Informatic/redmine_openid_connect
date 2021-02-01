@@ -95,20 +95,9 @@ module RedmineOpenidConnect
 
           user.login = user_info["user_name"] || user_info["nickname"] || user_info["preferred_username"]
 
-          firstname = user_info["given_name"]
-          lastname = user_info["family_name"]
-
-          if (firstname.nil? || lastname.nil?) && user_info["name"]
-            parts = user_info["name"].split
-            if parts.length >= 2
-              firstname = parts[0]
-              lastname = parts[-1]
-            end
-          end
-
           attributes = {
-            firstname: firstname || "",
-            lastname: lastname || "",
+            firstname: user.login,
+            lastname: user.login,
             mail: user_info["email"],
             mail_notification: 'only_my_events',
             last_login_on: Time.now
