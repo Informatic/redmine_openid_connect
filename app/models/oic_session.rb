@@ -11,6 +11,7 @@ class OicSession < ActiveRecord::Base
       'client_id' => ENV.fetch("REDMINE_OIDC_CLIENT_ID", nil),
       'client_secret' => ENV.fetch("REDMINE_OIDC_CLIENT_SECRET", nil),
       'scopes' => ENV.fetch("REDMINE_OIDC_SCOPES", nil),
+      'groups_attribute' => ENV.fetch("REDMINE_OIDC_GROUPS_ATTRIBUTE", "groups"),
       'group' => ENV.fetch("REDMINE_OIDC_GROUP", nil),
       'admin_group' => ENV.fetch("REDMINE_OIDC_ADMIN_GROUP", nil),
       'dynamic_config_expiry' => ENV.fetch("REDMINE_OIDC_DYNAMIC_CONFIG_EXPIRY", nil),
@@ -124,32 +125,15 @@ class OicSession < ActiveRecord::Base
     end
   end
 
-  def check_keycloak_role(role)
-    # keycloak way...
-    kc_is_in_role = false
-    if user["realm_access"].present?
-      kc_is_in_role = user["realm_access"]["roles"].include?(role)
-    end
-    if user["resource_access"].present? && user["resource_access"][client_config['client_id']].present?
-      kc_is_in_role = user["resource_access"][client_config['client_id']]["roles"].include?(role)
-    end
-    return true if kc_is_in_role 
-  end
-
   def authorized?
     if client_config['group'].blank?
       return true
     end
 
-    return true if check_keycloak_role client_config['group']
-
-    return false if !user["member_of"] && !user["roles"]
-
     return true if self.admin?
 
     if client_config['group'].present?
-       return true if user["member_of"].present? && user["member_of"].include?(client_config['group'])
-       return true if user["roles"].present? && user["roles"].include?(client_config['group']) || user["roles"].include?(client_config['admin_group']) 
+       return true if user[client_config['groups_attribute']].present? && user[client_config['groups_attribute']].include?(client_config['group'])
     end
 
     return false
@@ -157,16 +141,11 @@ class OicSession < ActiveRecord::Base
 
   def admin?
     if client_config['admin_group'].present?
-      if user["member_of"].present?
-        return true if user["member_of"].include?(client_config['admin_group'])
+      if user[client_config['groups_attribute']].present?
+        return true if user[client_config['groups_attribute']].include?(client_config['admin_group'])
       end
-      if user["roles"].present? 
-        return true if user["roles"].include?(client_config['admin_group'])
-      end
-      # keycloak way...
-      return true if check_keycloak_role client_config['admin_group']
     end
-    
+
     return false
   end
 
