@@ -10,8 +10,6 @@ Redmine::Plugin.register :redmine_openid_connect do
   version '0.9.4'
   url 'https://github.com/devopskube/redmine_openid_connect'
   author_url 'http://github.com/adillera'
-
-  settings :default => { 'empty' => true }, partial: 'settings/redmine_openid_connect_settings'
 end
 
 Rails.configuration.to_prepare do

@@ -5,7 +5,16 @@ class OicSession < ActiveRecord::Base
   before_create :randomize_nonce!
 
   def self.client_config
-    Setting.plugin_redmine_openid_connect
+    {
+      'enabled' => ENV.has_key?("REDMINE_OIDC_SERVER"),
+      'openid_connect_server_url' => ENV.fetch("REDMINE_OIDC_SERVER", nil),
+      'client_id' => ENV.fetch("REDMINE_OIDC_CLIENT_ID", nil),
+      'client_secret' => ENV.fetch("REDMINE_OIDC_CLIENT_SECRET", nil),
+      'scopes' => ENV.fetch("REDMINE_OIDC_SCOPES", nil),
+      'group' => ENV.fetch("REDMINE_OIDC_GROUP", nil),
+      'admin_group' => ENV.fetch("REDMINE_OIDC_ADMIN_GROUP", nil),
+      'dynamic_config_expiry' => ENV.fetch("REDMINE_OIDC_DYNAMIC_CONFIG_EXPIRY", nil),
+    }
   end
 
   def client_config
